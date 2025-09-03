@@ -2,6 +2,7 @@ import requests
 import os
 import random
 from sys import exit
+from platformdirs import user_data_dir
 
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = '1'
 
@@ -9,7 +10,7 @@ import pygame
 
 version_num = 1
 
-app_folder = os.path.join(os.environ['APPDATA'], "Foodie Dash")
+app_folder = os.path.join(user_data_dir(), "FoodieDashLegacyPython")
 resources_folder = os.path.join(app_folder, "Resources")
 
 icon_path = f"{resources_folder}/icon_{version_num}.png"
