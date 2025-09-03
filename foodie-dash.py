@@ -41,8 +41,8 @@ pygame.init()
 WIDTH, HEIGHT = 800, 600
 WHITE, COLOR = (255, 255, 255), (141, 103, 216)
 
-player_width, player_height, player_speed = 128, 128, 15
-food_width, food_height, food_speed = 128, 128, 8
+player_width, player_height, player_speed = 128, 128, 600
+food_width, food_height, food_speed = 128, 128, 300
 
 player_hitbox_width, player_hitbox_height = 128, 128
 food_hitbox_width, food_hitbox_height = 128, 128
@@ -128,9 +128,11 @@ def check_collision():
 def game_loop():
     global score, player_x, food_x, food_y, draw_hitboxes, auto_mode, auto_key, player_image, flipped
 
-    dt = clock.tick(60) / 1000.0
+    clock = pygame.time.Clock()
 
     while True:
+        dt = clock.tick(60) / 1000
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
@@ -148,26 +150,21 @@ def game_loop():
 
         if not auto_mode:
             keys = pygame.key.get_pressed()
-            
-            controller_axis_value = 0
-            if controller:
-                controller_axis_value = controller.get_axis(0)
+            axis = controller.get_axis(0) if controller else 0
 
-            if (keys[pygame.K_LEFT] or keys[pygame.K_a] or controller_axis_value < -0.1) and player_x > 0:
+            if (keys[pygame.K_LEFT] or keys[pygame.K_a] or axis < -0.1) and player_x > 0:
                 move_player(-player_speed * dt)
-            
-            if (keys[pygame.K_RIGHT] or keys[pygame.K_d] or controller_axis_value > 0.1) and player_x < WIDTH - player_width:
+            if (keys[pygame.K_RIGHT] or keys[pygame.K_d] or axis > 0.1) and player_x < WIDTH - player_width:
                 move_player(player_speed * dt)
-
-        food_y += food_speed * dt
-        if auto_mode:
+        else:
             auto_move_player(dt)
 
-        if food_y >= player_y:
-            if check_collision():
-                handle_collision()
-            else:
-                handle_death()
+        food_y += food_speed * dt
+
+        if check_collision():
+            handle_collision()
+        elif food_y >= HEIGHT:
+            handle_death()
 
         COLORraw_window()
 
@@ -194,11 +191,12 @@ def move_player(delta_x):
 
 def auto_move_player(dt):
     global player_x, flipped, player_image
-    if abs(player_x - food_x) > player_speed:
-        if player_x < food_x:
-            move_player(player_speed * dt)
-        else:
-            move_player(-player_speed * dt)
+    distance = food_x - player_x
+    move_amount = player_speed * dt
+    if abs(distance) > move_amount:
+        move_player(move_amount if distance > 0 else -move_amount)
+    else:
+        move_player(distance)
 
 def handle_collision():
     global score, food_x, food_y
